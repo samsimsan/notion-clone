@@ -7,11 +7,15 @@ import { ElementRef, useEffect, useRef, useState } from "react"; //refer below 2
 import { useMediaQuery } from "usehooks-ts";
 import { UserItem } from "./user-item";
 
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
 
 const Navigation = () => {
 
     const pathname = usePathname();
     const isMobile = useMediaQuery("(max-width: 768px)");
+    const documents = useQuery(api.documents.get);
 
     const isResizingRef = useRef(false);
     const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -19,7 +23,7 @@ const Navigation = () => {
     const [isResetting, setIsResetting] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(isMobile); //if the screen is mobile, it is collapsed, if not, we can change this to collapse sidebar
 
-    // there seemed to be something that was marking the isMobile false in the begining which was taken by isCollapsed, the ismobile correct itself later but the isCollapsed needs to have a set method called to change it. This is the reason this useEffect exists.
+    // there seemed to be something that was marking the isMobile false in the begining which was taken by isCollapsed, the ismobile correct itself later but the isCollapsed needs to have a set method called to change it. This is the reason we call its set method in this effect.
     useEffect(() => {
         setIsCollapsed(isMobile);
 
@@ -118,8 +122,12 @@ const Navigation = () => {
                 <div>
                     <UserItem />
                 </div>
-                <div>
-                    <p>Documents</p>
+                <div className="mt-4">
+                    {documents?.map((document) => (
+                        <p key={document._id}>
+                            {document.title}
+                        </p>
+                    ))}
                 </div>
                 <div
                     onMouseDown={handleMouseDown}
@@ -145,9 +153,9 @@ const Navigation = () => {
 
 export default Navigation
 
-/*
--------
-the "group" concept in tailwind:
+/*                                                     ***************************
+----------------------
+1. the "group" concept in tailwind:
     refer: https://youtu.be/0OaDyjB9Ib8?si=P4Uk653uMAIsPTuD&t=6725
     
     the aside element has a class "group" assigned to it.
@@ -156,9 +164,9 @@ the "group" concept in tailwind:
     This means that we can use this concept as a condition rendering on the elements with "group-" based on the condition of the element with "group" or "group/xyz"
 
     the "xyz" is used to differentiate the types.
--------
-the ElementRef in react:
+----------------------
+2. the ElementRef in react:
     Gets the instance type for a React element. The instance will be different for various component types.
     JSX intrinsics like div will give you their DOM instance. For React.ElementRef<"div"> that would be HTMLDivElement.
 
-*/
+                                                      ****************************/
