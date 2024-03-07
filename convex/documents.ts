@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
+import { log } from "console";
 
 
 // to archive the docs
@@ -10,18 +11,18 @@ export const archive = mutation({
         const identity = await ctx.auth.getUserIdentity();
 
         if (!identity) {
-            throw new Error("Not authenticated");
+            throw new Error("Not Authenticated");
         }
         const userId = identity.subject;
 
         const existingDocument = await ctx.db.get(args.id);
         if (!existingDocument) { // we can't find the doc
-            throw new Error("Not found");
+            throw new Error("Not Found");
         }
 
         //only if the logged user's id matches the user id in the doc schema, we archive it
         if (existingDocument.userId !== userId) {
-            throw new Error("Unauthorized");
+            throw new Error("UnAuthorized");
         }
 
         //going to archive all the child of the archived parent:
@@ -68,7 +69,7 @@ export const getSidebar = query({
         const identity = await ctx.auth.getUserIdentity();
 
         if (!identity) {
-            throw new Error("Not authenticated");
+            throw new Error("Not Authenticated");
         }
 
         const userId = identity.subject;
@@ -100,7 +101,7 @@ export const create = mutation({
 
         //if there isn't an identity, then the user is not logged in:
         if (!identity) {
-            throw new Error("Not authenticated");
+            throw new Error("Not Authenticated");
         }
 
         //extracting the userId:
@@ -117,4 +118,142 @@ export const create = mutation({
 
         return document;
     }
-})
+});
+
+
+export const getTrash = query({
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+
+        //if there isn't an identity, then the user is not logged in:
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+
+        //extracting the userId:
+        const userId = identity.subject;
+
+        const documents = await ctx.db
+            .query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .filter((q) =>
+                q.eq(q.field("isArchived"), true),
+            )
+            .order("desc")
+            .collect();
+
+        return documents;
+    }
+});
+
+
+export const restore = mutation({
+    args: { id: v.id("documents") },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+
+        //if there isn't an identity, then the user is not logged in:
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+
+        //extracting the userId:
+        const userId = identity.subject;
+
+        const existingDocument = await ctx.db.get(args.id);
+        if (!existingDocument) {
+            throw new Error("Not Found");
+        }
+
+        if (existingDocument.userId !== userId) {
+            throw new Error("UnAuthorized");
+        }
+
+        //func to restore the child docs of the parent:
+        const recursiveRestore = async (documentId: Id<"documents">) => {
+            const children = await ctx.db
+                .query("documents")
+                .withIndex("by_user_parent", (q) => (
+                    q
+                        .eq("userId", userId)
+                        .eq("parentDocument", documentId)
+                ))
+                .collect();
+
+            for (const child of children) {
+                await ctx.db.patch(child._id, {
+                    isArchived: false,
+                });
+
+                await recursiveRestore(child._id);
+            }
+        }
+
+        //to change the mentioned property faster
+        const options: Partial<Doc<"documents">> = {
+            isArchived: false,
+        };
+
+        //while restoring, we need to know if it had a parent
+        if (existingDocument.parentDocument) {
+            const parent = await ctx.db.get(existingDocument.parentDocument);
+            if (parent?.isArchived) {
+                options.parentDocument = undefined;
+            }
+        }
+
+        const document = await ctx.db.patch(args.id, options);
+        recursiveRestore(args.id);
+
+        return document;
+    }
+});
+
+//hard delete:
+export const remove = mutation({
+    args: { id: v.id("documents") },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+
+        //if there isn't an identity, then the user is not logged in:
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+
+        //extracting the userId:
+        const userId = identity.subject;
+
+        const existingDocument = await ctx.db.get(args.id);
+        if (!existingDocument) {
+            throw new Error("Not Found");
+        }
+
+        if (existingDocument.userId !== userId) {
+            throw new Error("UnAuthorized");
+        }
+
+        //if we delete a parent doc, then the children should point to the grandparent doc 😬
+        if (existingDocument.parentDocument) {
+            const parent = await ctx.db.get(existingDocument.parentDocument);
+            //to get all kids:
+            const children = await ctx.db
+                .query("documents")
+                .withIndex("by_user_parent", (q) => (
+                    q
+                        .eq("userId", userId)
+                        .eq("parentDocument", existingDocument._id)
+                ))
+                .collect();
+
+            for (const child of children) {
+                await ctx.db.patch(child._id, {
+                    parentDocument: parent?._id,
+                });
+
+            }
+        }
+        const document = await ctx.db.delete(args.id);
+
+        return document;
+    }
+});
