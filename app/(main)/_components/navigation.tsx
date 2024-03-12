@@ -2,28 +2,11 @@
 
 import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
-import {
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
-import {
-    ChevronsLeft,
-    MenuIcon,
-    Plus,
-    PlusCircle,
-    Search,
-    Settings,
-    Trash
-} from "lucide-react";
+import { ChevronsLeft, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { usePathname } from "next/navigation";
-import {
-    ElementRef,
-    useEffect,
-    useRef,
-    useState
-} from "react"; //refer below 2.
+import { ElementRef, useEffect, useRef, useState } from "react"; //refer below 2.
 import { useMediaQuery } from "usehooks-ts";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
