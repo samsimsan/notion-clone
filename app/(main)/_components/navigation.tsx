@@ -1,21 +1,26 @@
 "use client";
 
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+
+import { useSearch } from "@/hooks/use-search";
+import { useSettings } from "@/hooks/use-settings";
+
+
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-
 import { ChevronsLeft, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
+
 import { usePathname } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react"; //refer below 2.
 import { useMediaQuery } from "usehooks-ts";
-import { useMutation } from "convex/react";
 import { toast } from "sonner";
 
 import { UserItem } from "./user-item";
 import Item from "./Item";
 import DocumentList from "./document-list";
 import TrashBox from "./trash-box";
-import { useSearch } from "@/hooks/use-search";
+
 
 const Navigation = () => {
 
@@ -23,6 +28,7 @@ const Navigation = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const create = useMutation(api.documents.create);
     const search = useSearch();
+    const settings = useSettings();
 
     const isResizingRef = useRef(false);
     const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -146,7 +152,7 @@ const Navigation = () => {
                     <Item
                         label="Settings"
                         icon={Settings}
-                        onClick={() => { }}
+                        onClick={settings.onOpen}
                     />
                     <Item
                         onClick={handleCreate}

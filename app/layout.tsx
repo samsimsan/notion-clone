@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { Toaster } from 'sonner';   // this is for posting notifications
 
 import { ThemeProvider } from '@/components/providers/Theme-provider';
 import { ConvexClientProvider } from '@/components/providers/convex-provider';
-import { Toaster } from 'sonner';   // this is for posting notifications
+import { ModalProvider } from '@/components/providers/modal-provider';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -44,6 +45,7 @@ export default function RootLayout({
             storageKey='notion-s-theme'
           >
             <Toaster position='bottom-center' /> {/* the notifications will come at the bottom right of the screen */}
+            <ModalProvider />
             {children}
           </ThemeProvider>
         </ConvexClientProvider>

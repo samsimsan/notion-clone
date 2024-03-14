@@ -1,6 +1,6 @@
 "use client";
 
-import useScrollTop from "@/hooks/use-scrol-top";
+import useScrollTop from "@/hooks/use-scroll-top";
 import { ModeToggle } from "@/components/mode-toggle";
 import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
