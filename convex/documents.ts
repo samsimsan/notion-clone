@@ -281,4 +281,68 @@ export const getSearch = query({
 
         return documents;
     }
+});
+
+export const getById = query({
+    args: { documentId: v.id("documents") },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        const document = await ctx.db.get(args.documentId);
+
+        if (!document) {
+            throw new Error("Not found");
+        }
+
+        //even if the user is npt logged, if the doc is published, then anyone should be able to see
+        if (document.isPublished && !document.isArchived) {
+            return document;
+        }
+
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+
+        const userId = identity.subject;
+        if (document.userId !== userId) {
+            throw new Error("Not Autherized");
+        }
+
+        return document;
+
+    }
+});
+
+
+export const update = mutation({
+    args: {
+        id: v.id("documents"),
+        title: v.optional(v.string()),
+        content: v.optional(v.string()),
+        cover: v.optional(v.string()),
+        icon: v.optional(v.string()),
+        isPublished: v.optional(v.boolean())
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+
+        const userId = identity.subject;
+
+        const { id, ...rest } = args; //separating id and the rest of the args
+        const existingDocument = await ctx.db.get(args.id);
+
+        if (!existingDocument) {
+            throw new Error("Not found");
+        }
+
+        if (existingDocument.userId !== userId) {
+            throw new Error("UnAuthorized");
+        }
+
+        const document = await ctx.db.patch(args.id, {
+            ...rest,
+        });
+    }
 })
