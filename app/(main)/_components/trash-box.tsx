@@ -10,6 +10,7 @@ import { Spinner } from "@/components/spinner";
 import { Search, Trash, Undo } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ConfirmModal from "../../../components/modals/confirm-model";
+import { Separator } from "@/components/ui/separator";
 
 const TrashBox = () => {
 
@@ -59,6 +60,13 @@ const TrashBox = () => {
             router.push("/documents");
         }
     };
+
+    const onRemoveAll = () => {
+        filteredDocuments?.map((document) => {
+            onRemove(document._id)
+            return;
+        })
+    }
 
     //loading state
     if (documents === undefined) {
@@ -113,6 +121,19 @@ const TrashBox = () => {
                         </div>
                     </div>
                 ))}
+                {filteredDocuments?.length !== 0 && (
+                    <>
+                        <Separator className="my-2" />
+                        <ConfirmModal onConfirm={onRemoveAll}>
+                            <div
+                                className="px-2 py-1 text-center text-sm rounded-sm w-full dark:bg-primary/5 dark:hover:bg-neutral-800 hover:bg-primary/5 flex items-center justify-center text-primary"
+                                role="button"
+                            >
+                                Clear trash
+                            </div>
+                        </ConfirmModal>
+                    </>
+                )}
             </div>
         </div >
     );
