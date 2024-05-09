@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useEdgeStore } from "@/lib/edgestore";
 import { useParams } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { log } from "console";
 
@@ -18,6 +18,7 @@ export const CoverImageModal = () => {
     const { edgestore } = useEdgeStore();
     const params = useParams();
     const update = useMutation(api.documents.update);
+    const updateCover = useMutation(api.documents.updateCover);
 
     const onClose = () => {
         setFile(undefined);
@@ -35,10 +36,17 @@ export const CoverImageModal = () => {
                 file
             });
 
-            await update({
+            const oldCover = await updateCover({
                 id: params.documentId as Id<"documents">,
-                coverImage: res.url
-            });
+                newCoverImage: res.url
+            })
+
+            if (oldCover !== undefined && oldCover !== null) {
+                await edgestore.publicFiles.delete({
+                    url: oldCover,
+                });
+
+            }
 
             onClose();
         };

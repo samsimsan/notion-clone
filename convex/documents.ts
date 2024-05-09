@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
-import { log } from "console";
 
 
 // to archive the docs
@@ -345,7 +344,7 @@ export const update = mutation({
             ...rest,
         });
     }
-})
+});
 
 
 //to remove the icons once added.
@@ -375,5 +374,69 @@ export const removeIcon = mutation({
 
         return document;
     }
+});
 
+
+// to remove the cover image of the page:
+export const removeCover = mutation({
+    args: {
+        id: v.id("documents"),
+    },
+    handler: async (ctx, args) => {
+
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+        const userId = identity.subject;
+
+        const existingDocument = await ctx.db.get(args.id);
+        if (!existingDocument) {
+            throw new Error("Not found");
+        } if (existingDocument.userId !== userId) {
+            throw new Error("UnAuthorized");
+        }
+
+        const document = await ctx.db.patch(args.id, {
+            coverImage: undefined,
+
+        });
+
+        return document;
+    }
+});
+
+
+export const updateCover = mutation({
+    args: {
+        id: v.id("documents"),
+        newCoverImage: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) {
+            throw new Error("Not Authenticated");
+        }
+        const userId = identity.subject;
+
+        const existingDocument = await ctx.db.get(args.id);
+        if (!existingDocument) {
+            throw new Error("Not found");
+        } if (existingDocument.userId !== userId) {
+            throw new Error("UnAuthorized");
+        }
+
+        //Does it have a cover image already? Save it
+        const oldCover = existingDocument.coverImage
+
+        //patch the new cover. even if its undefined!
+        const document = await ctx.db.patch(args.id, {
+            coverImage: args.newCoverImage,
+
+        });
+
+        return oldCover;
+    }
 })
+
+
