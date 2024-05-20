@@ -7,9 +7,8 @@ import { useState } from "react";
 import { useEdgeStore } from "@/lib/edgestore";
 import { useParams } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { log } from "console";
 
 export const CoverImageModal = () => {
     const [file, setFile] = useState<File>();
@@ -18,7 +17,6 @@ export const CoverImageModal = () => {
     const { edgestore } = useEdgeStore();
     const params = useParams();
     const update = useMutation(api.documents.update);
-    const updateCover = useMutation(api.documents.updateCover);
 
     const onClose = () => {
         setFile(undefined);
@@ -28,27 +26,24 @@ export const CoverImageModal = () => {
 
     //This is to submit the cover image
     const onChange = async (file?: File) => {
-        if (file) { // only do this if you have a file passed to this func
+
+        if (file) {
             setIsSubmitting(true);
             setFile(file);
 
             const res = await edgestore.publicFiles.upload({
-                file
+                file,
+                options: {
+                    replaceTargetUrl: coverImage.url //if it has a value that will be used else it would be undefined so nothing would be there
+                }
             });
 
-            const oldCover = await updateCover({
+            await update({
                 id: params.documentId as Id<"documents">,
-                newCoverImage: res.url
-            })
-
-            if (oldCover !== undefined && oldCover !== null) {
-                await edgestore.publicFiles.delete({
-                    url: oldCover,
-                });
-
-            }
-
+                coverImage: res.url
+            });
             onClose();
+
         };
     }
 

@@ -32,23 +32,16 @@ const Cover = ({
 
     //Removing coverImage
     const RemoveCover = async () => {
-        if (initialData.coverImage) {
+
+        if (url) {
             await edgestore.publicFiles.delete({
-                url: initialData.coverImage,
+                url: url,
             });
-            // removeCoverImage({
-            //     id: params.documentId as Id<"documents">
-            // });
-            updateCoverImage({
-                id: params.documentId as Id<"documents">,
-                newCoverImage: undefined
-            })
-
-        } else {
-            console.log("No previous cover image found for this Doc");
-
         }
 
+        removeCoverImage({
+            id: params.documentId as Id<"documents">
+        });
     }
 
 
@@ -71,8 +64,7 @@ const Cover = ({
                 <div className="opacity-0 group-hover:opacity-100 absolute bottom-5 right-5 flex items-center gap-x-2">
                     <Button
                         onClick={() => {
-                            // RemoveCover();
-                            coverImage.onOpen();
+                            coverImage.onReplace(url);
                         }}
                         className="text-muted-foreground text-xs"
                         variant="outline"

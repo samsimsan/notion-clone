@@ -79,7 +79,7 @@ const Toolbar = ({
     return (
         <div className="pl-[54px] group relative">
             {!!initialData.icon && !preview && ( // we HAVE the icon and its not in preview -> we can see and remove icon
-                <div className="flex items-center gap-x-2 group/icon pt-6">
+                <div className="flex items-center gap-x-2 group/icon mt-[-16px]">
                     <IconPicker onChange={onIconSelect}>
                         <p className="text-6xl  hover:opacity-75 transition">
                             {initialData.icon}
@@ -100,7 +100,7 @@ const Toolbar = ({
                     {initialData.icon}
                 </p>
             )}
-            <div className="opacity-0 transition group-hover:opacity-100 flex items-center gap-x-1 py-4">
+            <div className="opacity-0 transition group-hover:opacity-100 flex items-center gap-x-1 py-3">
                 {!initialData.icon && !preview && (  //we DON'T HAVE ICON and its not preview -> we can set the icon
                     <IconPicker asChild onChange={onIconSelect}>
                         <Button
