@@ -27,7 +27,6 @@ const Cover = ({
     const coverImage = useCoverImage();
     const { edgestore } = useEdgeStore();
     const removeCoverImage = useMutation(api.documents.removeCover);
-    const updateCoverImage = useMutation(api.documents.updateCover);
     const params = useParams();
 
     //Removing coverImage

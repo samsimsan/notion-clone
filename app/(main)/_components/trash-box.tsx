@@ -11,6 +11,7 @@ import { Search, Trash, Undo } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ConfirmModal from "../../../components/modals/confirm-model";
 import { Separator } from "@/components/ui/separator";
+import { useEdgeStore } from "@/lib/edgestore";
 
 const TrashBox = () => {
 
@@ -20,6 +21,8 @@ const TrashBox = () => {
     const documents = useQuery(api.documents.getTrash);
     const restore = useMutation(api.documents.restore);
     const remove = useMutation(api.documents.remove);
+
+    const { edgestore } = useEdgeStore();
 
     const [search, setSearch] = useState("");
     const filteredDocuments = documents?.filter((document) => {
@@ -44,9 +47,31 @@ const TrashBox = () => {
         });
     };
 
-    const onRemove = (
+    const onRemove = async (
         documentId: Id<"documents">
     ) => {
+
+        // we first collect the cover url of the document
+        const currentDoc = documents?.find(doc => doc._id === documentId);
+        const coverImage = currentDoc?.coverImage;
+
+        console.log("this is the details of the doc we are removing\n\n");
+        console.log(coverImage);
+
+        // then we check if it is undefined
+        if (coverImage) {
+            console.log("found cover and deleting it");
+            await edgestore.publicFiles.delete({
+                url: coverImage,
+            });
+            console.log("deleted cover");
+        }
+        // if it exists, then we delete it from the edgstore
+
+        //if the user is looking at the doc that got deleted, he will be redirected
+        if (params.documentId === documentId) {
+            router.push("/documents");
+        }
         const promise = remove({ id: documentId });
 
         toast.promise(promise, {
@@ -55,10 +80,6 @@ const TrashBox = () => {
             error: "Failed to delete note."
         });
 
-        //if the user is looking at the doc that got deleted, he will be redirected
-        if (params.documentId === documentId) {
-            router.push("/documents");
-        }
     };
 
     const onRemoveAll = () => {

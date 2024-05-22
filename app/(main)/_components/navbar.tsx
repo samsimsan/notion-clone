@@ -59,7 +59,7 @@ const Navbar = ({
                 </div>
             </nav>
             {document.isArchived && (
-                <Banner documentId={document._id} />
+                <Banner documentId={document._id} coverImage={document.coverImage} />
             )}
         </>
     )

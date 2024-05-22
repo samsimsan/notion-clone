@@ -231,7 +231,7 @@ export const remove = mutation({
             throw new Error("UnAuthorized");
         }
 
-        //if we delete a parent doc, then the children should point to the grandparent doc 😬
+        //if we delete a parent doc, then the children should point to the grandparent doc 
         if (existingDocument.parentDocument) {
             const parent = await ctx.db.get(existingDocument.parentDocument);
             //to get all kids:
