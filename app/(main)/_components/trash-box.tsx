@@ -60,13 +60,11 @@ const TrashBox = () => {
 
         // then we check if it is undefined
         if (coverImage) {
-            console.log("found cover and deleting it");
+            // if it exists, then we delete it from the edgstore
             await edgestore.publicFiles.delete({
                 url: coverImage,
             });
-            console.log("deleted cover");
         }
-        // if it exists, then we delete it from the edgstore
 
         //if the user is looking at the doc that got deleted, he will be redirected
         if (params.documentId === documentId) {
