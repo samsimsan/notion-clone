@@ -54,16 +54,46 @@ const TrashBox = () => {
         // we first collect the cover url of the document
         const currentDoc = documents?.find(doc => doc._id === documentId);
         const coverImage = currentDoc?.coverImage;
+        const content = currentDoc?.content;
 
-        console.log("this is the details of the doc we are removing\n\n");
-        console.log(coverImage);
+        const findImageurls = (jsonObj: Object, baseurl: string) => {
+            const result: string[] = [];
+            const baseRegex = new RegExp(`${baseurl}`);
+
+            //recursive function:
+            const traverseObj = (obj: Object) => {
+                if (typeof obj === "string" && baseRegex.test(obj)) {
+                    result.push(obj);
+                } else if (Array.isArray(obj)) {
+                    obj.forEach(item => traverseObj(item));
+                } else if (typeof obj === "object" && obj !== null) {
+                    Object.values(obj).forEach(value => traverseObj(value));
+                };
+            };
+
+            traverseObj(jsonObj);
+            return result;
+        }
 
         // then we check if it is undefined
-        if (coverImage) {
-            // if it exists, then we delete it from the edgstore
-            await edgestore.publicFiles.delete({
-                url: coverImage,
-            });
+        if (content || coverImage) {
+            if (content) {
+                const ImageInContent = findImageurls(JSON.parse(content), "files.edgestore");
+                console.log("found " + ImageInContent.length + " images in content. Deleting now");
+                for (const image of ImageInContent) {
+                    await edgestore.publicFiles.delete({
+                        url: image,
+                    });
+                };
+                console.log("deleted Images");
+            }
+            if (coverImage) {
+                // console.log("found cover and deleting it");
+                await edgestore.publicFiles.delete({
+                    url: coverImage,
+                });
+                // console.log("deleted cover");
+            }
         }
 
         //if the user is looking at the doc that got deleted, he will be redirected

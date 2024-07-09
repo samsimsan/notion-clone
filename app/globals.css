@@ -82,16 +82,32 @@ body,
   }
 }
 
+h1.bn-inline-content {
+  font-size: 36px !important;
+}
+
+h2.bn-inline-content {
+  font-size: 30px !important;
+}
+
+h3.bn-inline-content {
+  font-size: 24px !important;
+}
+
 /* For Chrome, Safari, and newer versions of Edge */
 ::-webkit-scrollbar {
-  width: 0.5rem; /* Set the width of the scrollbar */
+  width: 0.5rem;
+  /* Set the width of the scrollbar */
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #0000002a; /* Set the color of the thumb */
-  border-radius: 6px; /* Set the border radius of the thumb */
+  background-color: #0000002a;
+  /* Set the color of the thumb */
+  border-radius: 6px;
+  /* Set the border radius of the thumb */
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #f0f0f000; /* Set the color of the track */
+  background-color: #f0f0f000;
+  /* Set the color of the track */
 }

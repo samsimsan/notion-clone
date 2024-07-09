@@ -12,11 +12,13 @@ import { toast } from "sonner";
 interface BannerProps {
     documentId: Id<"documents">
     coverImage?: string
+    content?: string
 }
 
 const Banner = ({
     documentId,
-    coverImage
+    coverImage,
+    content
 }: BannerProps) => {
 
     const router = useRouter();
@@ -25,21 +27,52 @@ const Banner = ({
 
     const { edgestore } = useEdgeStore();
 
+    const findImageurls = (jsonObj: Object, baseurl: string) => {
+        const result: string[] = [];
+        const baseRegex = new RegExp(`${baseurl}`);
+
+        //recursive function:
+        const traverseObj = (obj: Object) => {
+            if (typeof obj === "string" && baseRegex.test(obj)) {
+                result.push(obj);
+            } else if (Array.isArray(obj)) {
+                obj.forEach(item => traverseObj(item));
+            } else if (typeof obj === "object" && obj !== null) {
+                Object.values(obj).forEach(value => traverseObj(value));
+            };
+        };
+
+        traverseObj(jsonObj);
+        return result;
+    }
 
     const onRemove = async () => {
         router.push("/documents");
-        const promise = remove({ id: documentId })
-        
-        
-        if (coverImage) {
-            console.log("found cover and deleting it");
-            await edgestore.publicFiles.delete({
-                url: coverImage,
-            });
-            console.log("deleted cover");
+        const promise = remove({ id: documentId });
+
+        // check if the content has any image:
+        if (content || coverImage) {
+            if (content) {
+                const ImageInContent = findImageurls(JSON.parse(content), "files.edgestore");
+                console.log("found " + ImageInContent.length + " images in content. Deleting now");
+                for (const image of ImageInContent) {
+                    await edgestore.publicFiles.delete({
+                        url: image,
+                    });
+                };
+                console.log("deleted Images");
+            }
+            if (coverImage) {
+                // console.log("found cover and deleting it");
+                await edgestore.publicFiles.delete({
+                    url: coverImage,
+                });
+                // console.log("deleted cover");
+            }
         }
-        
-        
+
+
+
         toast.promise(promise, {
             loading: "Deleting note...",
             success: "Note deleted!",

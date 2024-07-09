@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ChevronsLeft, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react"; //refer below 2.
 import { useMediaQuery } from "usehooks-ts";
 import { toast } from "sonner";
@@ -20,7 +20,6 @@ import { UserItem } from "./user-item";
 import Item from "./Item";
 import DocumentList from "./document-list";
 import TrashBox from "./trash-box";
-import Navbars from "./navbar";
 import Navbar from "./navbar";
 
 
@@ -28,6 +27,7 @@ const Navigation = () => {
 
     const params = useParams();
     const pathname = usePathname();
+    const router = useRouter();
     const isMobile = useMediaQuery("(max-width: 768px)");
     const create = useMutation(api.documents.create);
     const search = useSearch();
@@ -116,7 +116,9 @@ const Navigation = () => {
     }
 
     const handleCreate = () => { // it will create a new page when you click on the 'new item' button
-        const promise = create({ title: "Untitled" });
+        const promise = create({ title: "Untitled" })
+            .then((documentId) => router.push(`/documents/${documentId}`))
+
         toast.promise(promise, {
             loading: "Creating a new note...",
             success: "New note created!",
