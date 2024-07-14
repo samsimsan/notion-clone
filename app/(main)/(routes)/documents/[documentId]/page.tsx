@@ -1,14 +1,14 @@
 "use client";
 
 import Cover from "@/components/cover";
-import Editor from "@/components/editor";
 import Toolbar from "@/components/toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 
-
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 
 interface DocumentIdPageProps {
     params: {
@@ -20,13 +20,15 @@ const DocumentIdPage = ({
     params
 }: DocumentIdPageProps) => {
 
+    const Editor = useMemo(() => dynamic(() => import("@/components/editor"), { ssr: false }), []); //recomended way from blocknote
+
     const document = useQuery(api.documents.getById, {
         documentId: params.documentId
     });
 
     const update = useMutation(api.documents.update);
 
-    const OnChange = (content: string) => {        
+    const OnChange = (content: string) => {
         update({
             id: params.documentId,
             content
